@@ -1,0 +1,346 @@
+<title>노트북 스톱워치</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap">
+<style>
+  /* Layout: one centered column — a 3D laptop that opens on start and closes on stop, readout, round buttons */
+  :root {
+    --bg: #e9edf0;
+    --fg: #1f272d;
+    --muted: #75828c;
+    --line: #d2d9de;
+    --desk: #dfe4e8;
+    --lap-top: #d5dadf;
+    --lap-edge: #aab2b9;
+    --lap-key: #323a40;
+    --lap-pad: #c4cad0;
+    --xl-green: #217346;
+    --chat-bg: #e8ebfa; --chat-line: #cfd4f2;
+    --np-bg: #ffffff; --np-bar: #f1f3f5; --np-line: #d9dee2; --np-fg: #1f272d;
+    --start-bg: #d5f0dd;
+    --start-fg: #1f7a44;
+    --stop-bg: #fde0da;
+    --stop-fg: #c64b37;
+    --btn-bg: #ffffff;
+    --font-ui: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14191d; --fg: #e6ecef; --muted: #8b98a2; --line: #2b343b; --desk: #1b2227;
+      --lap-top: #9aa2a9; --lap-edge: #6f777e; --lap-key: #20262b; --lap-pad: #858d94;
+      --np-bg: #1e2327; --np-bar: #262d32; --np-line: #333c43; --np-fg: #e6ecef;
+      --chat-bg: #2d3050; --chat-line: #3f4375;
+      --start-bg: #1c3a28; --start-fg: #7fdc99; --stop-bg: #432522; --stop-fg: #ff9585;
+      --btn-bg: #21292e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14191d; --fg: #e6ecef; --muted: #8b98a2; --line: #2b343b; --desk: #1b2227;
+    --lap-top: #9aa2a9; --lap-edge: #6f777e; --lap-key: #20262b; --lap-pad: #858d94;
+    --np-bg: #1e2327; --np-bar: #262d32; --np-line: #333c43; --np-fg: #e6ecef;
+    --chat-bg: #2d3050; --chat-line: #3f4375;
+    --start-bg: #1c3a28; --start-fg: #7fdc99; --stop-bg: #432522; --stop-fg: #ff9585;
+    --btn-bg: #21292e;
+    color-scheme: dark;
+  }
+
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-ui);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 24px 40px;
+    box-sizing: border-box;
+  }
+  .wrap { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+
+  /* ---- laptop (sizes in cqw of .laptop-box) ---- */
+  .laptop-box { container-type: inline-size; width: 100%; max-width: 580px; aspect-ratio: 100 / 80; position: relative; }
+  .scene { position: absolute; inset: 0; perspective: 420cqw; perspective-origin: 50% 40%; }
+  .desk-shadow {
+    position: absolute; left: 4cqw; right: 4cqw; top: 66cqw; height: 12cqw;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,.28), rgba(0,0,0,0) 70%);
+    filter: blur(1cqw);
+  }
+  .rig { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 50% 56cqw; transform: rotateX(-20deg); }
+
+  .base {
+    position: absolute; left: 6cqw; top: 56cqw; width: 88cqw; height: 55cqw;
+    transform-origin: top; transform: rotateX(90deg);
+    background: linear-gradient(180deg, var(--lap-top), var(--lap-edge));
+    border-radius: 0 0 2.6cqw 2.6cqw; border: 0.3cqw solid var(--lap-edge); box-sizing: border-box;
+  }
+  .keys {
+    position: absolute; left: 5cqw; right: 5cqw; top: 4cqw; height: 28cqw;
+    display: grid; grid-template-columns: repeat(14, 1fr); grid-template-rows: repeat(5, 1fr); gap: .7cqw;
+  }
+  .keys i { background: var(--lap-key); border-radius: .5cqw; }
+  .keys i.space { grid-column: 4 / 11; }
+  .pad { position: absolute; left: 33cqw; width: 22cqw; top: 37cqw; height: 13cqw; background: var(--lap-pad); border: .3cqw solid var(--lap-edge); border-radius: 1.2cqw; box-sizing: border-box; }
+
+  .lid {
+    position: absolute; left: 6cqw; top: 1cqw; width: 88cqw; height: 55cqw;
+    transform-origin: 50% 100%; transform-style: preserve-3d;
+    transform: rotateX(-90deg) translateZ(-.4cqw);
+    transition: transform 1s cubic-bezier(.55, .05, .25, 1);
+  }
+  .open .lid { transform: rotateX(7deg) translateZ(-.4cqw); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 2.6cqw 2.6cqw .6cqw .6cqw; box-sizing: border-box; }
+  .lid-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(160deg, var(--lap-top), var(--lap-edge));
+    border: .3cqw solid var(--lap-edge);
+    display: grid; place-items: center;
+  }
+  .lid-back b { width: 7cqw; height: 7cqw; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--lap-edge)); opacity: .75; }
+  .lid-front { background: #101417; padding: 1.8cqw 1.8cqw 2.6cqw; }
+
+  /* ---- spreadsheet screen ---- */
+  .xl { background: #fff; height: 100%; display: flex; flex-direction: column; overflow: hidden; border-radius: .6cqw; color: #222; font-size: 1.55cqw; user-select: none; }
+  .xl-title { background: var(--xl-green); color: #fff; height: 3.4cqw; display: flex; align-items: center; justify-content: center; font-size: 1.6cqw; flex: none; }
+  .xl-tabs { height: 2.8cqw; display: flex; align-items: center; gap: 2.2cqw; padding: 0 1.4cqw; background: #f3f3f3; border-bottom: 1px solid #d4d4d4; color: #555; flex: none; }
+  .xl-tabs .on { color: var(--xl-green); font-weight: 600; border-bottom: .35cqw solid var(--xl-green); padding: .5cqw 0; }
+  .xl-fx { height: 3cqw; display: flex; align-items: stretch; border-bottom: 1px solid #d4d4d4; flex: none; }
+  .xl-fx .nb { width: 9cqw; border-right: 1px solid #d4d4d4; display: flex; align-items: center; padding-left: 1cqw; }
+  .xl-fx .fx { width: 4cqw; display: grid; place-items: center; color: #888; font-style: italic; border-right: 1px solid #d4d4d4; }
+  .xl-fx .fm { padding-left: 1cqw; display: flex; align-items: center; white-space: nowrap; overflow: hidden; }
+  .grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 3.6cqw 19cqw 25cqw repeat(3, 1fr); grid-template-rows: 2.6cqw repeat(4, 3.5cqw) 8.6cqw repeat(5, 3.5cqw); overflow: hidden; background: #fff; position: relative; }
+  .grid > div { border-right: 1px solid #e1e1e1; border-bottom: 1px solid #e1e1e1; padding: 0 1cqw; display: flex; align-items: center; overflow: hidden; white-space: nowrap; }
+  .grid .h { background: #f1f1f1; color: #666; justify-content: center; padding: 0; }
+  .grid .h.sel { background: #d3e8dc; color: var(--xl-green); font-weight: 600; }
+  .grid .num { justify-content: flex-end; font-variant-numeric: tabular-nums; }
+  .grid .head { background: var(--xl-green); color: #fff; font-weight: 600; }
+  .grid .big { font-size: 4.4cqw; font-weight: 300; letter-spacing: -.1cqw; justify-content: flex-end; padding-right: 1.6cqw; font-variant-numeric: tabular-nums; }
+  .grid .cur { position: absolute; border: .45cqw solid var(--xl-green); pointer-events: none; box-sizing: border-box; left: 22.6cqw; top: 16.2cqw; width: 25cqw; height: 8.6cqw; }
+  .grid .cur::after { content: ""; position: absolute; right: -.8cqw; bottom: -.8cqw; width: 1.3cqw; height: 1.3cqw; background: var(--xl-green); border: .2cqw solid #fff; }
+  .xl-bot { height: 2.8cqw; display: flex; align-items: stretch; background: #f3f3f3; border-top: 1px solid #d4d4d4; flex: none; }
+  .xl-bot span { display: flex; align-items: center; padding: 0 2cqw; }
+  .xl-bot .sheet { background: #fff; color: var(--xl-green); font-weight: 600; border-bottom: .35cqw solid var(--xl-green); }
+  .xl-status { height: 2.6cqw; background: var(--xl-green); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 1.4cqw; flex: none; font-size: 1.4cqw; }
+
+  /* ---- chat notification that pops up when the laptop closes ---- */
+  .chat {
+    position: absolute; left: 50%; top: 7cqw; width: 40cqw; z-index: 2;
+    display: flex; gap: 1.2cqw; align-items: flex-start;
+    opacity: 0; transform: translate(-50%, 3cqw) scale(.92); pointer-events: none;
+    transition: opacity .25s ease, transform .35s cubic-bezier(.2, 1.4, .4, 1);
+  }
+  .bye .chat { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  .chat-av { flex: none; width: 4.2cqw; height: 4.2cqw; min-width: 18px; min-height: 18px; border-radius: 50%; background: #6264a7; color: #fff; display: grid; place-items: center; font-weight: 600; font-size: max(9px, 1.8cqw); }
+  .chat-col { min-width: 0; display: flex; flex-direction: column; gap: .5cqw; }
+  .chat-meta { font-size: max(8px, 1.4cqw); color: var(--muted); }
+  .chat-meta b { color: var(--fg); font-weight: 600; margin-right: .6cqw; }
+  .chat-msg {
+    position: relative; background: var(--chat-bg); border-radius: 0 1cqw 1cqw 1cqw; padding: 1.2cqw 1.6cqw;
+    font-size: max(10px, 2.04cqw); font-weight: 500; color: var(--fg); box-shadow: 0 2px 8px rgba(0,0,0,.12); border: 1px solid var(--chat-line);
+  }
+
+  /* ---- readout, buttons ---- */
+  .readout { font-weight: 300; font-size: clamp(2.6rem, 14vw, 3.8rem); font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1; text-align: center; }
+  .readout .cs { color: var(--muted); }
+  .controls { display: flex; gap: 12px; width: 100%; max-width: 340px; justify-content: space-between; }
+  button {
+    font: 600 1rem var(--font-ui); width: 88px; height: 88px; border-radius: 50%;
+    border: 3px solid var(--line); background: var(--btn-bg); color: var(--fg); cursor: pointer; transition: transform .08s ease;
+  }
+  button:active { transform: scale(.95); }
+  button:focus-visible { outline: 3px solid var(--start-fg); outline-offset: 3px; }
+  button:disabled { color: var(--muted); cursor: default; opacity: .6; }
+  #startBtn { background: var(--start-bg); color: var(--start-fg); border-color: var(--start-bg); }
+  #startBtn.running { background: var(--stop-bg); color: var(--stop-fg); border-color: var(--stop-bg); }
+  .np { width: 100%; max-width: 440px; background: var(--np-bg); border: 1px solid var(--np-line); border-radius: 8px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+  .np-title { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; font-size: .8rem; background: var(--np-bar); color: var(--np-fg); }
+  .np-ctl { color: var(--muted); letter-spacing: .05em; }
+  .np-menu { display: flex; gap: 14px; padding: 4px 12px; font-size: .78rem; color: var(--np-fg); border-bottom: 1px solid var(--np-line); }
+  .np-body { margin: 0; padding: 12px 14px; height: 170px; overflow: auto; font: 400 .9rem/1.65 ui-monospace, "Cascadia Mono", Consolas, "D2Coding", monospace; color: var(--np-fg); background: var(--np-bg); font-variant-numeric: tabular-nums; white-space: pre; }
+  .np-body .empty { color: var(--muted); }
+  .hint { color: var(--muted); font-size: .85rem; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center; }
+  kbd { font: 500 .78rem var(--font-ui); border: 1.5px solid var(--line); border-radius: 6px; padding: 2px 7px; background: var(--btn-bg); }
+
+  /* wide screens: laptop and controls on the left, notepad beside them, all in one view */
+  @media (min-width: 920px) {
+    body { padding-block: 20px; }
+    .wrap { max-width: 1080px; display: grid; grid-template-columns: minmax(0, 580px) minmax(0, 420px); grid-template-rows: repeat(4, auto); justify-content: center; align-content: center; justify-items: center; column-gap: 48px; row-gap: 16px; min-height: calc(100dvh - 40px); }
+    .wrap > :not(.np) { grid-column: 1; }
+    .laptop-box { max-width: min(580px, max(360px, calc((100dvh - 250px) * 1.25))); }
+    .np { grid-column: 2; grid-row: 1 / span 4; align-self: center; max-width: 420px; }
+    .np-body { height: min(420px, 55dvh); }
+  }
+
+  @media (prefers-reduced-motion: reduce) { .lid { transition-duration: .01s; } button { transition: none; } }
+</style>
+
+<div class="wrap">
+  <div class="laptop-box" id="laptop">
+    <div class="chat" aria-live="polite">
+      <div class="chat-av">김</div>
+      <div class="chat-col">
+        <div class="chat-meta"><b>김대리</b>방금</div>
+        <div class="chat-msg">제발 퇴근 좀 하자</div>
+      </div>
+    </div>
+    <div class="scene">
+      <div class="desk-shadow"></div>
+      <div class="rig">
+        <div class="base"><div class="keys" id="keys"></div><div class="pad"></div></div>
+        <div class="lid">
+          <div class="face lid-back"><b></b></div>
+          <div class="face lid-front">
+            <div class="xl" aria-hidden="true">
+              <div class="xl-title">Book1 - Excel</div>
+              <div class="xl-tabs"><span>파일</span><span class="on">홈</span><span>삽입</span><span>페이지 레이아웃</span><span>수식</span><span>데이터</span><span>보기</span></div>
+              <div class="xl-fx"><div class="nb">B5</div><div class="fx">fx</div><div class="fm">=TEXT(경과시간,"mm:ss.00")</div></div>
+              <div class="grid" id="grid"></div>
+              <div class="xl-bot"><span class="sheet">Sheet1</span><span style="color:#888">+</span></div>
+              <div class="xl-status"><span id="xStatus">준비</span><span>100%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="readout" id="readout" role="timer">00:00<span class="cs">.00</span></div>
+
+  <div class="controls">
+    <button id="resetBtn" disabled>재설정</button>
+    <button id="lapBtn" disabled>랩</button>
+    <button id="startBtn">시작</button>
+  </div>
+  <div class="hint"><kbd>Space</kbd> 시작/정지 · <kbd>L</kbd> 랩 · <kbd>R</kbd> 재설정</div>
+
+  <section class="np" aria-label="랩 메모장">
+    <div class="np-title"><span>제목 없음 - 메모장</span><span class="np-ctl">–&nbsp;&nbsp;☐&nbsp;&nbsp;✕</span></div>
+    <div class="np-menu"><span>파일</span><span>편집</span><span>서식</span><span>보기</span><span>도움말</span></div>
+    <pre class="np-body" id="npBody"></pre>
+  </section>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const p = n => String(n).padStart(2, '0');
+
+  // keyboard keys
+  const keys = $('keys');
+  for (let r = 0; r < 5; r++) {
+    if (r === 4) {
+      const parts = [3, 7, 4];
+      parts.forEach((w, i) => { const k = document.createElement('i'); k.style.gridColumn = 'span ' + w; keys.appendChild(k); });
+    } else for (let c = 0; c < 14; c++) keys.appendChild(document.createElement('i'));
+  }
+
+  // spreadsheet grid
+  const grid = $('grid');
+  const cells = {};
+  const cols = ['', 'A', 'B', 'C', 'D', 'E'];
+  function cell(cls, text, id, extra) {
+    const d = document.createElement('div');
+    d.className = cls; if (text != null) d.textContent = text; if (id) cells[id] = d;
+    if (extra) Object.assign(d.style, extra);
+    grid.appendChild(d); return d;
+  }
+  cols.forEach((c, i) => cell('h' + (c === 'B' ? ' sel' : ''), c));
+  const rows = [
+    ['스톱워치', '값', 'head'],
+    ['분', '00', 'num', 'xMin'],
+    ['초', '00', 'num', 'xSec'],
+    ['1/100초', '00', 'num', 'xCs'],
+    ['경과 시간', '00:00.00', 'big', 'xTotal'],
+    ['총 초', '0.00', 'num', 'xSecs'],
+    ['상태', '정지', '', 'xState'],
+    [], [], [], []
+  ];
+  rows.forEach((r, i) => {
+    cell('h' + (i === 4 ? ' sel' : ''), String(i + 1));
+    if (!r.length) { for (let c = 0; c < 5; c++) cell('', ''); return; }
+    if (r[2] === 'head') {
+      cell('head', r[0]); cell('head', r[1], null, { justifyContent: 'flex-end' });
+      for (let c = 0; c < 3; c++) cell('', '');
+    } else if (r[2] === 'big') {
+      cell('', r[0]); const t = cell('big', r[1], r[3]); t.style.gridColumn = '3 / 4';
+      // B5 is the selected cell; value sits in B5 spanning visually B:C
+      t.style.gridColumn = 'auto'; for (let c = 0; c < 3; c++) cell('', '');
+    } else {
+      cell('', r[0]); cell(r[2], r[1], r[3]); for (let c = 0; c < 3; c++) cell('', '');
+    }
+  });
+  const cur = document.createElement('div'); cur.className = 'cur'; grid.appendChild(cur);
+
+  const laptop = $('laptop'), readout = $('readout'), startBtn = $('startBtn'), resetBtn = $('resetBtn');
+  let running = false, startedAt = 0, before = 0, raf = 0, wakeLock = null;
+  const elapsed = () => before + (running ? performance.now() - startedAt : 0);
+
+  function render() {
+    const t = elapsed();
+    const cs = Math.floor(t / 10) % 100, s = Math.floor(t / 1000) % 60;
+    const m = Math.floor(t / 60000) % 60, h = Math.floor(t / 3600000);
+    const main = (h ? h + ':' : '') + p(m) + ':' + p(s);
+    readout.innerHTML = main + '<span class="cs">.' + p(cs) + '</span>';
+    cells.xTotal.textContent = main + '.' + p(cs);
+    cells.xMin.textContent = p(m); cells.xSec.textContent = p(s); cells.xCs.textContent = p(cs);
+    cells.xSecs.textContent = (t / 1000).toFixed(2);
+  }
+  const loop = () => { render(); raf = requestAnimationFrame(loop); };
+
+  async function keepAwake(on) {
+    try {
+      if (on && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+      else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+    } catch (e) { wakeLock = null; }
+  }
+
+  // laps are written into the notepad as lines of text
+  const lapBtn = $('lapBtn'), npBody = $('npBody');
+  let laps = [];
+  const fmt = t => {
+    const cs = Math.floor(t / 10) % 100, s = Math.floor(t / 1000) % 60, m = Math.floor(t / 60000) % 60, h = Math.floor(t / 3600000);
+    return (h ? h + ':' : '') + p(m) + ':' + p(s) + '.' + p(cs);
+  };
+  function renderLaps() {
+    if (!laps.length) { npBody.innerHTML = '<span class="empty">랩을 누르면 여기에 적혀요.</span>'; return; }
+    npBody.textContent = laps.map((t, i) =>
+      '랩 ' + p(i + 1) + '   구간 ' + fmt(t - (i ? laps[i - 1] : 0)) + '   누적 ' + fmt(t)).join('\n');
+    npBody.scrollTop = npBody.scrollHeight;
+  }
+  function lap() { if (!running) return; laps.push(elapsed()); renderLaps(); }
+
+  function sync() {
+    lapBtn.disabled = !running;
+    startBtn.textContent = running ? '정지' : (elapsed() > 0 ? '계속' : '시작');
+    startBtn.classList.toggle('running', running);
+    resetBtn.disabled = running || elapsed() === 0;
+    laptop.classList.toggle('open', running);
+    cells.xState.textContent = running ? '실행 중' : '정지';
+    $('xStatus').textContent = running ? '계산' : '준비';
+  }
+  let byeTimer = 0;
+  function toggle() {
+    clearTimeout(byeTimer);
+    if (running) {
+      before = elapsed(); running = false; cancelAnimationFrame(raf); render(); keepAwake(false);
+      byeTimer = setTimeout(() => laptop.classList.add('bye'), 900);   // pops up once the lid is shut
+    } else {
+      startedAt = performance.now(); running = true; loop(); keepAwake(true);
+      laptop.classList.remove('bye');
+    }
+    sync();
+  }
+  function reset() { if (running) return; clearTimeout(byeTimer); laptop.classList.remove('bye'); before = 0; laps = []; renderLaps(); render(); sync(); }
+
+  startBtn.addEventListener('click', toggle);
+  resetBtn.addEventListener('click', reset);
+  lapBtn.addEventListener('click', lap);
+  document.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.code === 'Space') { e.preventDefault(); toggle(); }
+    else if (e.key === 'l' || e.key === 'L') lap();
+    else if (e.key === 'r' || e.key === 'R') reset();
+  });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && running) keepAwake(true); });
+
+  renderLaps(); render(); sync();
+</script>
